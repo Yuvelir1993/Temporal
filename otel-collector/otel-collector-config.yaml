@@ -1,0 +1,57 @@
+receivers:
+    otlp:
+        protocols:
+            grpc:
+            http:
+
+exporters:
+    logging:
+        loglevel: info
+    jaeger:
+        endpoint: jaeger-all-in-one:14250
+        tls:
+            insecure: true
+
+processors:
+    memory_limiter:
+        check_interval: 1s
+        limit_mib: 2000
+    batch:
+    attributes:
+        actions:
+            - key: environment
+              value: production
+              action: insert
+            - key: password
+              action: delete
+            - key: email
+              action: hash
+
+extensions:
+    health_check:
+    pprof:
+    zpages:
+        endpoint: 0.0.0.0:55679
+
+service:
+    telemetry:
+ #       logs:
+#            level: debug
+ #           initial_fields:
+ #               service: my-collector-instance
+        metrics:
+            level: detailed
+            address: 0.0.0.0:8888
+    extensions: [ health_check, pprof, zpages ]
+    pipelines:
+        traces:
+            receivers: [ otlp ]
+            exporters: [ jaeger ]
+            processors: [ memory_limiter, batch, attributes ]
+        metrics:
+            receivers: [ otlp ]
+            exporters: [ logging ]
+            processors: [ batch ]
+        logs:
+            receivers: [ otlp ]
+            exporters: [ logging ]
