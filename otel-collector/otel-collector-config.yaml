@@ -19,8 +19,8 @@ processors:
     batch:
     attributes:
         actions:
-            - key: environment
-              value: production
+            - key: my-otel-attr-environment
+              value: testing
               action: insert
             - key: password
               action: delete
