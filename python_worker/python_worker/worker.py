@@ -16,7 +16,7 @@ from temporalio.worker import Worker
 from activities.greeting import greeting, phrase
 from activities.rich import rich
 from commons import otel_collector_url, temporal_server_url, task_queue_polyglot, python_greeting_workflow, \
-    task_queue_python
+    task_queue_python, go_greeting_workflow
 
 
 @workflow.defn(name=python_greeting_workflow)
@@ -32,19 +32,23 @@ class GreetingWorkflow:
             )
         )
 
-        await workflow.execute_activity(
+        wf_result = list(sorted(results))
+
+        go_wf_result = await workflow.execute_child_workflow(go_greeting_workflow, "Hello from python!",
+                                                             task_queue=task_queue_polyglot)
+        wf_result.append(go_wf_result)
+
+        phrase_result = await workflow.execute_activity(
             phrase, "Second phrase", start_to_close_timeout=timedelta(seconds=10)
         )
+        wf_result.append(phrase_result)
 
-        await workflow.execute_activity(
+        rich_phrase_result = await workflow.execute_activity(
             rich, "Rich phrase", start_to_close_timeout=timedelta(seconds=10)
         )
+        wf_result.append(rich_phrase_result)
 
-        # await workflow.execute_activity(
-        #     "GoGreetingActivity", "Rich phrase", start_to_close_timeout=timedelta(seconds=10)
-        # )
-
-        return list(sorted(results))
+        return wf_result
 
 
 interrupt_event = asyncio.Event()
