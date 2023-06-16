@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "my-temporal"
+name = "python-worker"
 version = "0.1.0"
 description = ""
 authors = ["plozovik <plozovikov@gmail.com>"]
 readme = "README.md"
-packages = [{ include = "my_temporal" }]
+packages = [{ include = "python_worker" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"

@@ -13,11 +13,9 @@ from temporalio.contrib.opentelemetry import TracingInterceptor
 from temporalio.runtime import OpenTelemetryConfig, Runtime, TelemetryConfig
 from temporalio.worker import Worker
 
-from my_temporal.activities.rich import rich
-from my_temporal.activities.greeting import greeting, phrase
-
-temporal_server_url = "localhost:7233"
-otel_collector_url = "http://localhost:4317"
+from activities.greeting import greeting, phrase
+from activities.rich import rich
+from commons import otel_collector_url, temporal_server_url, task_queue
 
 
 @workflow.defn
@@ -49,7 +47,7 @@ interrupt_event = asyncio.Event()
 
 def init_runtime_with_telemetry() -> Runtime:
     # Setup global tracer for workflow traces
-    provider = TracerProvider(resource=Resource.create({SERVICE_NAME: "my-service"}))
+    provider = TracerProvider(resource=Resource.create({SERVICE_NAME: "python-worker-service"}))
     exporter = OTLPSpanExporter(endpoint=otel_collector_url, insecure=True)
     provider.add_span_processor(BatchSpanProcessor(exporter))
     trace.set_tracer_provider(provider)
@@ -76,7 +74,7 @@ async def main():
     # Run a worker for the workflow
     async with Worker(
             client,
-            task_queue="open_telemetry-task-queue",
+            task_queue=task_queue,
             workflows=[GreetingWorkflow],
             activities=[greeting, phrase, rich],
     ):

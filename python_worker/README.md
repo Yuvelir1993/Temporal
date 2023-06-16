@@ -1,9 +1,9 @@
 ```bash
-poetry run python my_temporal/worker.py
+poetry run python python_worker/worker.py
 ```
 
 ```bash
-poetry run python my_temporal/starter.py
+poetry run python python_worker/starter.py
 ```
 
 ### Temporal server
