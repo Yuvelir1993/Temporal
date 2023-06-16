@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "my-temporal"
+version = "0.1.0"
+description = ""
+authors = ["plozovik <plozovikov@gmail.com>"]
+readme = "README.md"
+packages = [{ include = "my_temporal" }]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+temporalio = "^1.1.0"
+opentelemetry-exporter-otlp-proto-grpc = "1.18.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
