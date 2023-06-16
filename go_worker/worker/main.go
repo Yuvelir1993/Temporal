@@ -1,7 +1,8 @@
 package main
 
 import (
-	helloworld "go-worker"
+	"go-worker/activities"
+	"go-worker/workflows"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"log"
@@ -17,8 +18,8 @@ func main() {
 
 	w := worker.New(c, "go-worker-task-queue", worker.Options{})
 
-	w.RegisterWorkflow(helloworld.Workflow)
-	w.RegisterActivity(helloworld.Activity)
+	w.RegisterWorkflow(workflows.Workflow)
+	w.RegisterActivity(activities.GreetingActivity)
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

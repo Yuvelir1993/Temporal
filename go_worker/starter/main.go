@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"github.com/google/uuid"
-	helloworld "go-worker"
+	"go-worker/workflows"
 	"log"
 
 	"go.temporal.io/sdk/client"
@@ -24,7 +24,7 @@ func main() {
 		TaskQueue: "go-worker-task-queue",
 	}
 
-	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, helloworld.Workflow, "Temporal")
+	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, workflows.Workflow, "Temporal")
 	if err != nil {
 		log.Fatalln("Unable to execute workflow", err)
 	}
