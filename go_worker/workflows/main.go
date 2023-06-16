@@ -2,28 +2,30 @@ package workflows
 
 import (
 	"go-worker/activities"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	"time"
 )
 
-// Workflow is a Hello World workflow definition.
-func Workflow(ctx workflow.Context, name string) (string, error) {
+func GoGreetingWorkflow(ctx workflow.Context, name string) (string, error) {
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
+		ScheduleToStartTimeout: 10 * time.Second,
+		ScheduleToCloseTimeout: 15 * time.Second,
+		RetryPolicy:            &temporal.RetryPolicy{MaximumAttempts: 2},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("HelloWorld workflow started", "name", name)
+	logger.Info("GoGreetingWorkflow started", "name", name)
 
 	var result string
-	err := workflow.ExecuteActivity(ctx, activities.GreetingActivity, name).Get(ctx, &result)
+	err := workflow.ExecuteActivity(ctx, activities.GoGreetingActivity, "Activity input").Get(ctx, &result)
 	if err != nil {
-		logger.Error("GreetingActivity failed.", "Error", err)
+		logger.Error("GoGreetingActivity failed.", "Error", err)
 		return "", err
 	}
 
-	logger.Info("HelloWorld workflow completed.", "result", result)
+	logger.Info("GoGreetingWorkflow completed.", "result", result)
 
 	return result, nil
 }

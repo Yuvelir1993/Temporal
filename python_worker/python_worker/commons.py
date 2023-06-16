@@ -1,3 +1,6 @@
-task_queue = "python-worker-task-queue"
+task_queue_python = "python-worker-task-queue"
+task_queue_polyglot = "task-queue-polyglot"
 temporal_server_url = "localhost:7233"
 otel_collector_url = "http://localhost:4317"
+python_greeting_workflow = "PythonGreetingWorkflow"
+python_greeting_activity = "PythonGreetingActivity"

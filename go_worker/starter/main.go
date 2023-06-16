@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/google/uuid"
+	"go-worker/commons"
 	"go-worker/workflows"
 	"log"
 
@@ -21,10 +22,10 @@ func main() {
 
 	workflowOptions := client.StartWorkflowOptions{
 		ID:        "go-" + uuid4.String(),
-		TaskQueue: "go-worker-task-queue",
+		TaskQueue: commons.TaskQueuePolyglot,
 	}
 
-	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, workflows.Workflow, "Temporal")
+	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, workflows.GoGreetingWorkflow, "Temporal")
 	if err != nil {
 		log.Fatalln("Unable to execute workflow", err)
 	}
@@ -37,5 +38,5 @@ func main() {
 	if err != nil {
 		log.Fatalln("Unable get workflow result", err)
 	}
-	log.Println("Workflow result:", result)
+	log.Println("GoGreetingWorkflow result:", result)
 }

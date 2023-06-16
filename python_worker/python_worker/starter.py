@@ -4,7 +4,7 @@ import uuid
 from temporalio.client import Client
 from temporalio.contrib.opentelemetry import TracingInterceptor
 
-from commons import temporal_server_url, task_queue
+from commons import temporal_server_url, task_queue_polyglot, task_queue_python
 from worker import init_runtime_with_telemetry, GreetingWorkflow
 
 
@@ -24,7 +24,7 @@ async def main():
         GreetingWorkflow.run,
         "Temporal",
         id="python-" + str(uuid.uuid4()),
-        task_queue=task_queue,
+        task_queue=task_queue_python,
     )
     print(f"Workflow result: {result}")
 

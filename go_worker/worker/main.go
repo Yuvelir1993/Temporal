@@ -2,9 +2,12 @@ package main
 
 import (
 	"go-worker/activities"
+	"go-worker/commons"
 	"go-worker/workflows"
+	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
+	"go.temporal.io/sdk/workflow"
 	"log"
 )
 
@@ -16,10 +19,10 @@ func main() {
 	}
 	defer c.Close()
 
-	w := worker.New(c, "go-worker-task-queue", worker.Options{})
+	w := worker.New(c, commons.TaskQueuePolyglot, worker.Options{})
 
-	w.RegisterWorkflow(workflows.Workflow)
-	w.RegisterActivity(activities.GreetingActivity)
+	w.RegisterWorkflowWithOptions(workflows.GoGreetingWorkflow, workflow.RegisterOptions{Name: commons.GoGreetingWorkflow})
+	w.RegisterActivityWithOptions(activities.GoGreetingActivity, activity.RegisterOptions{Name: commons.GoGreetingActivity})
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

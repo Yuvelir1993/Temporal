@@ -15,10 +15,11 @@ from temporalio.worker import Worker
 
 from activities.greeting import greeting, phrase
 from activities.rich import rich
-from commons import otel_collector_url, temporal_server_url, task_queue
+from commons import otel_collector_url, temporal_server_url, task_queue_polyglot, python_greeting_workflow, \
+    task_queue_python
 
 
-@workflow.defn
+@workflow.defn(name=python_greeting_workflow)
 class GreetingWorkflow:
     @workflow.run
     async def run(self, name: str) -> List[str]:
@@ -38,6 +39,10 @@ class GreetingWorkflow:
         await workflow.execute_activity(
             rich, "Rich phrase", start_to_close_timeout=timedelta(seconds=10)
         )
+
+        # await workflow.execute_activity(
+        #     "GoGreetingActivity", "Rich phrase", start_to_close_timeout=timedelta(seconds=10)
+        # )
 
         return list(sorted(results))
 
@@ -74,7 +79,7 @@ async def main():
     # Run a worker for the workflow
     async with Worker(
             client,
-            task_queue=task_queue,
+            task_queue=task_queue_python,
             workflows=[GreetingWorkflow],
             activities=[greeting, phrase, rich],
     ):
@@ -97,7 +102,6 @@ if __name__ == "__main__":
         loop.run_until_complete(loop.shutdown_asyncgens())
     finally:
         try:
-            queue.task_done()
             loop.run_until_complete(loop.shutdown_asyncgens())
         finally:
             asyncio.set_event_loop(None)

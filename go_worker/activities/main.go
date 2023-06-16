@@ -5,8 +5,8 @@ import (
 	"go.temporal.io/sdk/activity"
 )
 
-func GreetingActivity(ctx context.Context, name string) (string, error) {
+func GoGreetingActivity(ctx context.Context, input string) (string, error) {
 	logger := activity.GetLogger(ctx)
-	logger.Info("GreetingActivity", "name", name)
-	return "Hello " + name + "!", nil
+	logger.Info("GoGreetingActivity", "name", input)
+	return "Hello !!!!!! " + input, nil
 }
