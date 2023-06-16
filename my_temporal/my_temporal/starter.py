@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 
 from temporalio.client import Client
 from temporalio.contrib.opentelemetry import TracingInterceptor
@@ -23,7 +24,7 @@ async def main():
     result = await client.execute_workflow(
         GreetingWorkflow.run,
         "Temporal",
-        id=f"open_telemetry-workflow-id",
+        id=str(uuid.uuid4()),
         task_queue="open_telemetry-task-queue",
     )
     print(f"Workflow result: {result}")

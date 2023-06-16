@@ -1,16 +1,20 @@
 import asyncio
 from datetime import timedelta
+from typing import List
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from temporalio import activity, workflow
+from temporalio import workflow
 from temporalio.client import Client
 from temporalio.contrib.opentelemetry import TracingInterceptor
 from temporalio.runtime import OpenTelemetryConfig, Runtime, TelemetryConfig
 from temporalio.worker import Worker
+
+from my_temporal.activities.rich import rich
+from my_temporal.activities.greeting import greeting, phrase
 
 temporal_server_url = "localhost:7233"
 otel_collector_url = "http://localhost:4317"
@@ -19,17 +23,25 @@ otel_collector_url = "http://localhost:4317"
 @workflow.defn
 class GreetingWorkflow:
     @workflow.run
-    async def run(self, name: str) -> str:
-        return await workflow.execute_activity(
-            compose_greeting,
-            name,
-            start_to_close_timeout=timedelta(seconds=10),
+    async def run(self, name: str) -> List[str]:
+        results = await asyncio.gather(
+            workflow.execute_activity(
+                greeting, name, start_to_close_timeout=timedelta(seconds=10)
+            ),
+            workflow.execute_activity(
+                phrase, name, start_to_close_timeout=timedelta(seconds=5)
+            )
         )
 
+        await workflow.execute_activity(
+            phrase, "Second phrase", start_to_close_timeout=timedelta(seconds=10)
+        )
 
-@activity.defn
-async def compose_greeting(name: str) -> str:
-    return f"Hello, {name}!"
+        await workflow.execute_activity(
+            rich, "Rich phrase", start_to_close_timeout=timedelta(seconds=10)
+        )
+
+        return list(sorted(results))
 
 
 interrupt_event = asyncio.Event()
@@ -66,7 +78,7 @@ async def main():
             client,
             task_queue="open_telemetry-task-queue",
             workflows=[GreetingWorkflow],
-            activities=[compose_greeting],
+            activities=[greeting, phrase, rich],
     ):
         # Wait until interrupted
         print("Worker started, ctrl+c to exit")
