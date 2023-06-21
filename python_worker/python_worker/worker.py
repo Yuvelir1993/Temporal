@@ -9,11 +9,12 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from temporalio import workflow
 from temporalio.client import Client
+from temporalio.common import RetryPolicy
 from temporalio.contrib.opentelemetry import TracingInterceptor
 from temporalio.runtime import OpenTelemetryConfig, Runtime, TelemetryConfig
 from temporalio.worker import Worker
 
-from activities.greeting import greeting, phrase
+from activities.greeting import greeting, phrase, error_activity
 from activities.rich import rich
 from commons import otel_collector_url, temporal_server_url, task_queue_polyglot, python_greeting_workflow, \
     task_queue_python, go_greeting_workflow
@@ -42,6 +43,14 @@ class GreetingWorkflow:
             phrase, "Second phrase", start_to_close_timeout=timedelta(seconds=10)
         )
         wf_result.append(phrase_result)
+
+        try:
+            await workflow.execute_activity(
+                error_activity, "Second phrase", start_to_close_timeout=timedelta(seconds=40),
+                retry_policy=RetryPolicy(maximum_interval=timedelta(seconds=6), maximum_attempts=2),
+            )
+        except EnvironmentError as e:
+            workflow.logger.error("Raised exception during 'error_activity' execution! " + e)
 
         rich_phrase_result = await workflow.execute_activity(
             rich, "Rich phrase", start_to_close_timeout=timedelta(seconds=10)
@@ -85,7 +94,7 @@ async def main():
             client,
             task_queue=task_queue_python,
             workflows=[GreetingWorkflow],
-            activities=[greeting, phrase, rich],
+            activities=[greeting, phrase, rich, error_activity],
     ):
         # Wait until interrupted
         print("Worker started, ctrl+c to exit")
@@ -95,7 +104,7 @@ async def main():
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    queue = asyncio.Queue(loop=loop)
+    queue = asyncio.Queue()
     try:
         asyncio.set_event_loop(loop)
         loop.set_debug(True)

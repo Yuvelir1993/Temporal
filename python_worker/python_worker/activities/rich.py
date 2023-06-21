@@ -1,3 +1,6 @@
+import random
+import time
+
 from temporalio import activity
 from opentelemetry import trace, baggage
 
@@ -12,6 +15,9 @@ async def rich(rich_input: str) -> str:
         root_span.set_attribute("rich.value", rich_input)
         root_span.add_event("Rich event.")
         activity.logger.info("[2] Running root part of rich activity with parameter %s" % rich_input)
+
+        time.sleep(random.randint(0, 5))
+
         with tracer.start_as_current_span(
                 name="rich_nested", context=parent_ctx
         ) as nested_span:
